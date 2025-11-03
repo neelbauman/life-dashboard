@@ -1,34 +1,37 @@
 ---
 import { getCollection } from 'astro:content';
-// メインのレイアウトを再利用します
-import Layout from '../layouts/Layout.astro';
+import Layout from '../layouts/Layout.astro'; // 共通レイアウトをインポート
 
-// 1. getStaticPaths を定義し、'items' コレクションからページを生成
+// 1. ビルド時に 'items' コレクションの全アイテムのページを生成する設定
 export async function getStaticPaths() {
   const items = await getCollection('items');
   return items.map(item => ({
     params: { slug: item.slug },
-    props: { item }, // 2. ページに item オブジェクト全体を渡す
+    props: { item },
   }));
 }
 
-// 3. props から item を受け取る
+// 2. 渡された item の情報を取得
 const { item } = Astro.props;
-// Markdown の本文をレンダリングする準備
+// 3. Markdown 本文を <Content /> コンポーネントとして取得
 const { Content } = await item.render();
 ---
 <Layout>
-  <h1>{item.data.name}</h1>
+  <h2>{item.data.name} (詳細)</h2>
   <ul>
     <li><strong>価格:</strong> {item.data.price.toLocaleString()} 円</li>
     <li><strong>ステータス:</strong> {item.data.status}</li>
     <li><strong>カテゴリ:</strong> {item.data.category}</li>
+    {item.data.priority && <li><strong>優先度:</strong> {item.data.priority}</li>}
+    {item.data.purchase_date && <li><strong>購入日:</strong> {item.data.purchase_date.toLocaleDateString('ja-JP')}</li>}
   </ul>
   
   <hr />
 
-  <Content />
+  <article>
+    <Content />
+  </article>
 
-  <br />
+  <hr />
   <a href={import.meta.env.BASE_URL}>ダッシュボードに戻る</a>
 </Layout>

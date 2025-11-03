@@ -1,11 +1,58 @@
 ---
-import Welcome from '../components/Welcome.astro';
+// 1. レイアウトをインポート
 import Layout from '../layouts/Layout.astro';
+// 2. データを取得 (Layout.astro から移動)
+import { getCollection } from 'astro:content';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const allItems = await getCollection('items');
+const boughtItems = allItems
+  .filter(item => item.data.status === 'bought')
+  .sort((a, b) => (a.data.purchase_date && b.data.purchase_date) ? b.data.purchase_date.getTime() - a.data.purchase_date.getTime() : 0);
+const wantItems = allItems
+  .filter(item => item.data.status === 'want')
+  .sort((a, b) => (a.data.priority || 99) - (b.data.priority || 99));
 
-
+const totalSpent = boughtItems.reduce((sum, item) => sum + item.data.price, 0);
 ---
 <Layout>
+  <h2>📈 サマリー</h2>
+  <p><strong>支出総額:</strong> {totalSpent.toLocaleString()} 円</p>
+
+  <h2>⭐ 欲しいものリスト (Want)</h2>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Price</th><th>Category</th><th>Priority</th></tr>
+    </thead>
+    <tbody class="want">
+      {wantItems.map(item => (
+        <tr>
+          <td>
+            <a href={item.slug}>{item.data.name}</a>
+          </td>
+          <td>{item.data.price.toLocaleString()} 円</td>
+          <td>{item.data.category}</td>
+          <td>{item.data.priority}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h2>🛒 購入済みリスト (Bought)</h2>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Price</th><th>Category</th><th>Purchase Date</th></tr>
+    </thead>
+    <tbody class"bought">
+      {boughtItems.map(item => (
+        <tr>
+          <td>
+            <a href={item.slug}>{item.data.name}</a>
+          </td>
+          <td>{item.data.price.toLocaleString()} 円</td>
+          <td>{item.data.category}</td>
+          <td>{item.data.purchase_date?.toLocaleDateString('ja-JP')}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
 </Layout>
