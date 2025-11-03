@@ -47,7 +47,7 @@ const totalSpent = boughtItems.reduce((sum, item) => sum + item.data.price, 0);
       {wantItems.map(item => (
         <tr>
           <td>
-            <a href={`/${item.slug}`}>{item.data.name}</a>
+            <a href={`${item.slug}`}>{item.data.name}</a>
           </td>
           <td>{item.data.price.toLocaleString()} 円</td>
           <td>{item.data.category}</td>
@@ -66,7 +66,7 @@ const totalSpent = boughtItems.reduce((sum, item) => sum + item.data.price, 0);
       {boughtItems.map(item => (
         <tr>
           <td>
-            <a href={`/${item.slug}`}>{item.data.name}</a>
+            <a href={`${item.slug}`}>{item.data.name}</a>
           </td>
           <td>{item.data.price.toLocaleString()} 円</td>
           <td>{item.data.category}</td>
