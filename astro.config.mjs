@@ -6,3 +6,4 @@ export default defineConfig({
 	site: 'https://neelbauman.github.io',
 	base: '/life-dashboard'
 });
+
