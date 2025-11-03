@@ -28,7 +28,7 @@ jobs:
         run: npm run build # pnpm の場合は pnpm build
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           # Astroのデフォルトビルド出力先 (astro.config.mjsのoutDirと合わせる)
           path: ./dist
