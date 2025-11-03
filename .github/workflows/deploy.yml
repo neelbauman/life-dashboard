@@ -1,40 +1,30 @@
 name: Deploy to GitHub Pages
 
 on:
-  # 'main' ブランチにプッシュされたときに実行
   push:
     branches: [main]
-
-  # Actionsタブから手動で実行できるようにする
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy: # ジョブは1つで良い
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Astro
+      # ★これだけですべてを自動でやってくれます
+      - name: Build and Deploy
         uses: withastro/action@v2
         # with:
           # node-version: 20 # 必要ならNode.jsのバージョンを指定
-          # pnpm-version: 9 # pnpmを使うなら指定
+          # pnpm: true # pnpmを使う場合はtrue
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Build
-        run: npm run build # pnpm の場合は pnpm build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          # Astroのデフォルトビルド出力先 (astro.config.mjsのoutDirと合わせる)
-          path: ./dist
+    # deployジョブを分離する必要がある場合 (必須ではない)
+    # Astroの公式ドキュメントは、以下のdeployジョブも記載しています
+    # これは、ビルドとデプロイの権限を分離するためのベストプラクティスです
 
   deploy:
-    needs: build
+    needs: build-and-deploy # build-and-deployが成功したら
     permissions:
       pages: write      # Pagesにデプロイするために必要
       id-token: write   # デプロイを検証するために必要
