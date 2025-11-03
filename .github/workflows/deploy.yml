@@ -1,0 +1,48 @@
+name: Deploy to GitHub Pages
+
+on:
+  # 'main' ブランチにプッシュされたときに実行
+  push:
+    branches: [main]
+
+  # Actionsタブから手動で実行できるようにする
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Astro
+        uses: withastro/action@v2
+        # with:
+          # node-version: 20 # 必要ならNode.jsのバージョンを指定
+          # pnpm-version: 9 # pnpmを使うなら指定
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Build
+        run: npm run build # pnpm の場合は pnpm build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Astroのデフォルトビルド出力先 (astro.config.mjsのoutDirと合わせる)
+          path: ./dist
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write      # Pagesにデプロイするために必要
+      id-token: write   # デプロイを検証するために必要
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

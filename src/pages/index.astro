@@ -4,8 +4,83 @@ import Layout from '../layouts/Layout.astro';
 
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
----
 
-<Layout>
-	<Welcome />
-</Layout>
+// --- 1. データの取得と集計 ---
+import { getCollection } from 'astro:content';
+
+// Astroが 'items' コレクションの全MDをパース・検証してくれます
+const allItems = await getCollection('items');
+
+// ステータスで分類
+const boughtItems = allItems
+  .filter(item => item.data.status === 'bought')
+  .sort((a, b) => b.data.purchase_date.getTime() - a.data.purchase_date.getTime()); // 購入日でソート
+
+const wantItems = allItems
+  .filter(item => item.data.status === 'want')
+  .sort((a, b) => (a.data.priority || 99) - (b.data.priority || 99)); // 優先度でソート
+
+// --- 2. メトリクス計算 ---
+const totalSpent = boughtItems.reduce((sum, item) => sum + item.data.price, 0);
+
+// (積立ロジックは data/config.yml を読み込むか、
+//  Astroの環境変数などで管理できます)
+
+---
+<html lang="ja">
+<head>
+  <title>My Want List Dashboard</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: 20px auto; }
+    h1, h2 { border-bottom: 2px solid #eee; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .want td:nth-child(2) { font-weight: bold; }
+    .bought { background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <h1>📊 Want List Dashboard</h1>
+
+  <h2>📈 サマリー</h2>
+  <p><strong>支出総額:</strong> {totalSpent.toLocaleString()} 円</p>
+  <h2>⭐ 欲しいものリスト (Want)</h2>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Price</th><th>Category</th><th>Priority</th></tr>
+    </thead>
+    <tbody class="want">
+      {wantItems.map(item => (
+        <tr>
+          <td>
+            <a href={`/${item.slug}`}>{item.data.name}</a>
+          </td>
+          <td>{item.data.price.toLocaleString()} 円</td>
+          <td>{item.data.category}</td>
+          <td>{item.data.priority}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h2>🛒 購入済みリスト (Bought)</h2>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Price</th><th>Category</th><th>Purchase Date</th></tr>
+    </thead>
+    <tbody class="bought">
+      {boughtItems.map(item => (
+        <tr>
+          <td>
+            <a href={`/${item.slug}`}>{item.data.name}</a>
+          </td>
+          <td>{item.data.price.toLocaleString()} 円</td>
+          <td>{item.data.category}</td>
+          <td>{item.data.purchase_date.toLocaleDateString('ja-JP')}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+</body>
+</html>
